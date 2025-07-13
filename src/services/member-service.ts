@@ -5,10 +5,10 @@ import clientPromise from '@/lib/mongodb';
 import { Collection, Db, ObjectId } from 'mongodb';
 import { members as staticMembers } from '@/lib/data';
 
-async function getCollection(): Promise<Collection<Member>> {
+async function getCollection(): Promise<Collection<Omit<Member, 'id'>>> {
     const client = await clientPromise;
     const db: Db = client.db("lionsManager"); // You can change the database name here
-    return db.collection<Member>('members');
+    return db.collection<Omit<Member, 'id'>>('members');
 }
 
 export async function getMembers(): Promise<Member[]> {
@@ -30,9 +30,9 @@ export async function seedMembers(): Promise<{success: boolean, message: string}
         if (count > 0) {
             return { success: true, message: 'Database already seeded.' };
         }
-        // remove the static id before inserting
-        const membersToInsert = staticMembers.map(({id, ...rest}) => ({...rest, _id: new ObjectId()}));
-        await collection.insertMany(membersToInsert as any[]);
+        // Remove the static 'id' field, MongoDB will generate a unique '_id' automatically.
+        const membersToInsert = staticMembers.map(({ id, ...rest }) => rest);
+        await collection.insertMany(membersToInsert);
         return { success: true, message: 'Database seeded successfully with 5 members.' };
     } catch(error) {
         console.error('Error seeding members:', error);
