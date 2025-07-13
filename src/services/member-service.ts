@@ -23,19 +23,24 @@ export async function getMembers(): Promise<Member[]> {
     }
 }
 
-export async function seedMembers(): Promise<{success: boolean, message: string}> {
+export async function seedMembers(): Promise<{ success: boolean, message: string }> {
+ 
     try {
         const collection = await getCollection();
         const count = await collection.countDocuments();
+
         if (count > 0) {
             return { success: true, message: 'Database already seeded.' };
         }
-        // Remove the static 'id' field, MongoDB will generate a unique '_id' automatically.
-        const membersToInsert = staticMembers.map(({ id, ...rest }) => rest);
-        await collection.insertMany(membersToInsert);
-        return { success: true, message: 'Database seeded successfully with 5 members.' };
-    } catch(error) {
-        console.error('Error seeding members:', error);
-        return { success: false, message: 'Failed to seed database.' };
+        await collection.insertMany(staticMembers);
+        return { success: true, message: `Database seeded successfully with ${staticMembers.length} members.` };
+    } catch (error) {
+        console.error('Error seeding members:');
+        console.error(error);
+        if (error instanceof Error) {
+            console.error(error.stack);
+        }
+        return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+
     }
-}
+}   

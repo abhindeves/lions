@@ -1,8 +1,7 @@
 import type { Member, Event, Subscription } from './types';
 
-export const members: Member[] = [
+export const members: Omit<Member, 'id'>[] = [
   {
-    id: '1',
     fullName: 'John Doe',
     email: 'john.doe@example.com',
     phoneNumber: '123-456-7890',
@@ -14,7 +13,6 @@ export const members: Member[] = [
     outstandingDues: 0,
   },
   {
-    id: '2',
     fullName: 'Jane Smith',
     email: 'jane.smith@example.com',
     phoneNumber: '987-654-3210',
@@ -22,10 +20,10 @@ export const members: Member[] = [
     membershipStartDate: '2018-03-22',
     membershipType: 'Lifetime',
     status: 'Active',
+    profilePhotoUrl: 'https://placehold.co/100x100.png',
     outstandingDues: 0,
   },
   {
-    id: '3',
     fullName: 'Peter Jones',
     email: 'peter.jones@example.com',
     phoneNumber: '555-123-4567',
@@ -33,10 +31,10 @@ export const members: Member[] = [
     membershipStartDate: '2022-07-10',
     membershipType: 'Regular',
     status: 'Inactive',
+    profilePhotoUrl: 'https://placehold.co/100x100.png',
     outstandingDues: 150,
   },
   {
-    id: '4',
     fullName: 'Mary Johnson',
     email: 'mary.johnson@example.com',
     phoneNumber: '555-987-6543',
@@ -44,10 +42,10 @@ export const members: Member[] = [
     membershipStartDate: '2015-11-05',
     membershipType: 'Honorary',
     status: 'Active',
+    profilePhotoUrl: 'https://placehold.co/100x100.png',
     outstandingDues: 0,
   },
   {
-    id: '5',
     fullName: 'David Williams',
     email: 'david.williams@example.com',
     phoneNumber: '555-555-5555',
@@ -55,13 +53,13 @@ export const members: Member[] = [
     membershipStartDate: '2023-02-28',
     membershipType: 'Regular',
     status: 'Active',
+    profilePhotoUrl: 'https://placehold.co/100x100.png',
     outstandingDues: 50,
   },
 ];
 
-export const events: Event[] = [
+export const events: Omit<Event, 'id'>[] = [
   {
-    id: 'e1',
     name: 'Annual Charity Gala',
     date: '2024-10-26',
     time: '18:00',
@@ -71,7 +69,6 @@ export const events: Event[] = [
     status: 'Upcoming',
   },
   {
-    id: 'e2',
     name: 'Community Park Cleanup',
     date: '2024-09-14',
     time: '09:00',
@@ -81,7 +78,6 @@ export const events: Event[] = [
     status: 'Upcoming',
   },
   {
-    id: 'e3',
     name: 'Monthly Members Meeting',
     date: '2024-08-05',
     time: '19:00',
@@ -91,7 +87,6 @@ export const events: Event[] = [
     status: 'Upcoming',
   },
   {
-    id: 'e4',
     name: 'Summer Picnic',
     date: '2024-07-20',
     time: '12:00',
@@ -101,7 +96,6 @@ export const events: Event[] = [
     status: 'Completed',
   },
   {
-    id: 'e5',
     name: 'Blood Donation Drive',
     date: '2024-06-15',
     time: '10:00',
@@ -111,7 +105,6 @@ export const events: Event[] = [
     status: 'Completed',
   },
   {
-    id: 'e6',
     name: 'Holiday Toy Drive',
     date: '2023-12-01',
     time: '09:00',
@@ -122,11 +115,8 @@ export const events: Event[] = [
   }
 ];
 
-export const subscriptions: Subscription[] = [
+export const subscriptions: Omit<Subscription, 'id' | 'memberId' | 'memberName'>[] = [
   {
-    id: 's1',
-    memberId: '1',
-    memberName: 'John Doe',
     paymentDate: '2024-01-20',
     amount: 150,
     paymentMethod: 'Online',
@@ -134,9 +124,6 @@ export const subscriptions: Subscription[] = [
     notes: 'Annual Dues 2024',
   },
   {
-    id: 's2',
-    memberId: '2',
-    memberName: 'Jane Smith',
     paymentDate: '2024-01-10',
     amount: 0,
     paymentMethod: 'Online',
@@ -144,9 +131,6 @@ export const subscriptions: Subscription[] = [
     notes: 'Lifetime Member - No Dues',
   },
   {
-    id: 's3',
-    memberId: '3',
-    memberName: 'Peter Jones',
     paymentDate: '2024-01-15',
     amount: 150,
     paymentMethod: 'Online',
@@ -154,19 +138,13 @@ export const subscriptions: Subscription[] = [
     notes: 'Annual Dues 2024',
   },
   {
-    id: 's4',
-    memberId: '5',
-    memberName: 'David Williams',
     paymentDate: '2024-02-01',
     amount: 100,
     paymentMethod: 'Cash',
     status: 'Partial',
     notes: 'Partial payment for 2024 dues.',
   },
-    {
-    id: 's5',
-    memberId: '1',
-    memberName: 'John Doe',
+  {
     paymentDate: '2023-01-18',
     amount: 150,
     paymentMethod: 'Bank Transfer',
