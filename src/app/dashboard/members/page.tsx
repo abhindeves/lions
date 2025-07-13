@@ -1,4 +1,24 @@
 'use client';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { addMember } from '@/services/member-service';
+
 
 import * as React from 'react';
 import {
@@ -47,6 +67,17 @@ import {
 import { getMembers, seedMembers } from '@/services/member-service';
 import { useToast } from '@/hooks/use-toast';
 
+
+// Define the schema for the members (Adding Members)
+const memberFormSchema = z.object({
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  status: z.enum(["Active", "Inactive"]),
+  membershipType: z.string().min(1),
+  membershipStartDate: z.string(),
+  profilePhotoUrl: z.string().optional(),
+});
+type MemberFormValues = z.infer<typeof memberFormSchema>;
 
 function MemberRow({ member }: { member: Member }) {
   const getInitials = (name: string) => {
@@ -161,12 +192,7 @@ export default function MembersPage() {
               Export
             </span>
           </Button>
-          <Button size="sm" className="h-8 gap-1">
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Add Member
-            </span>
-          </Button>
+          <AddMemberDialog onMemberAdded={fetchMembers} />
         </div>
       </div>
        <Card>
@@ -220,5 +246,171 @@ export default function MembersPage() {
         </CardContent>
       </Card>
     </Tabs>
+  );
+}
+
+
+
+function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
+  const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
+
+  const form = useForm<MemberFormValues>({
+    resolver: zodResolver(memberFormSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      status: "Active",
+      membershipType: "Regular",
+      membershipStartDate: new Date().toISOString().split('T')[0],
+    },
+  });
+
+  const onSubmit = async (data: MemberFormValues) => {
+    try {
+      // Call the addMember API function
+      const result = await addMember({
+        fullName: data.fullName,
+        email: data.email,
+        status: data.status,
+        membershipType: data.membershipType,
+        membershipStartDate: data.membershipStartDate,
+        profilePhotoUrl: data.profilePhotoUrl || undefined,
+      });
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || "Member added successfully",
+        });
+        onMemberAdded(); // Refresh the member list
+        setOpen(false); // Close the dialog
+        form.reset(); // Reset the form
+      } else {
+        throw new Error(result.message || "Failed to add member");
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add member",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="h-8 gap-1">
+          <PlusCircle className="h-3.5 w-3.5" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            Add Member
+          </span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Member</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="john@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="membershipType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Membership Type</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Regular" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="membershipStartDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Start Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="profilePhotoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile Photo URL (optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/photo.jpg" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Add Member</Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
