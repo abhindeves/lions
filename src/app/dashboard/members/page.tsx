@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import {
-  ChevronDown,
   MoreHorizontal,
   PlusCircle,
   File,
@@ -35,18 +34,17 @@ import {
 } from '@/components/ui/table';
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { members } from '@/lib/data';
-import { Member } from '@/lib/types';
+import type { Member } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
+import { getMembers } from '@/services/member-service';
 
 
 function MemberRow({ member }: { member: Member }) {
@@ -102,15 +100,31 @@ function MemberRow({ member }: { member: Member }) {
 
 
 export default function MembersPage() {
+  const [members, setMembers] = React.useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [activeTab, setActiveTab] = React.useState('all');
   
-  const filteredMembers = members.filter(member => 
-    member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  React.useEffect(() => {
+    async function fetchMembers() {
+      const dbMembers = await getMembers();
+      setMembers(dbMembers);
+    }
+    fetchMembers();
+  }, []);
+
+  const filteredMembers = members.filter(member => {
+    const matchesSearch = member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (activeTab === 'all') return matchesSearch;
+    if (activeTab === 'active') return matchesSearch && member.status === 'Active';
+    if (activeTab === 'inactive') return matchesSearch && member.status === 'Inactive';
+    
+    return matchesSearch;
+  });
 
   return (
-    <Tabs defaultValue="all">
+    <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center">
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
@@ -169,7 +183,15 @@ export default function MembersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMembers.map(member => <MemberRow key={member.id} member={member} />)}
+              {filteredMembers.length > 0 ? (
+                  filteredMembers.map(member => <MemberRow key={member.id} member={member} />)
+              ) : (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center">
+                        No members found.
+                    </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

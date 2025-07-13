@@ -1,4 +1,7 @@
+import { ObjectId } from 'mongodb';
+
 export type Member = {
+  _id?: ObjectId; // MongoDB's default primary key
   id: string;
   fullName: string;
   email: string;
