@@ -5,6 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useFormState, useFormStatus } from 'react-dom';
+import { login } from '@/app/actions';
+import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+
 
 function LionIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -34,7 +39,32 @@ function LionIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function LoginButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? 'Logging in...' : 'Login'}
+    </Button>
+  );
+}
+
+
 export default function LoginPage() {
+  const [state, formAction] = useFormState(login, null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (state?.error) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: state.error,
+      });
+    }
+  }, [state, toast]);
+
+
   return (
     <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
       <div className="flex items-center justify-center py-12">
@@ -54,10 +84,10 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
+              <form action={formAction} className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="m@example.com" required />
+                  <Input id="email" name="email" type="email" placeholder="m@example.com" required defaultValue="admin@example.com" />
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center">
@@ -66,12 +96,10 @@ export default function LoginPage() {
                       Forgot your password?
                     </Link>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input id="password" name="password" type="password" required defaultValue="password" />
                 </div>
-                <Button type="submit" className="w-full" asChild>
-                  <Link href="/dashboard">Login</Link>
-                </Button>
-              </div>
+                <LoginButton />
+              </form>
             </CardContent>
           </Card>
         </div>
