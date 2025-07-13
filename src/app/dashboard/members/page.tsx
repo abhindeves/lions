@@ -44,7 +44,8 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import { getMembers } from '@/services/member-service';
+import { getMembers, seedMembers } from '@/services/member-service';
+import { useToast } from '@/hooks/use-toast';
 
 
 function MemberRow({ member }: { member: Member }) {
@@ -103,14 +104,33 @@ export default function MembersPage() {
   const [members, setMembers] = React.useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [activeTab, setActiveTab] = React.useState('all');
-  
-  React.useEffect(() => {
-    async function fetchMembers() {
+  const { toast } = useToast();
+
+  const fetchMembers = React.useCallback(async () => {
       const dbMembers = await getMembers();
       setMembers(dbMembers);
-    }
-    fetchMembers();
   }, []);
+  
+  React.useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  const handleSeed = async () => {
+    const result = await seedMembers();
+    if(result.success) {
+      toast({
+        title: 'Success',
+        description: result.message,
+      });
+      fetchMembers(); // Refresh the list after seeding
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: result.message,
+      });
+    }
+  }
 
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -132,6 +152,9 @@ export default function MembersPage() {
           <TabsTrigger value="inactive">Inactive</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
+           <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleSeed}>
+            Seed Data
+          </Button>
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

@@ -2,7 +2,8 @@
 
 import type { Member } from '@/lib/types';
 import clientPromise from '@/lib/mongodb';
-import { Collection, Db } from 'mongodb';
+import { Collection, Db, ObjectId } from 'mongodb';
+import { members as staticMembers } from '@/lib/data';
 
 async function getCollection(): Promise<Collection<Member>> {
     const client = await clientPromise;
@@ -19,5 +20,22 @@ export async function getMembers(): Promise<Member[]> {
     } catch (error) {
         console.error('Error fetching members:', error);
         return [];
+    }
+}
+
+export async function seedMembers(): Promise<{success: boolean, message: string}> {
+    try {
+        const collection = await getCollection();
+        const count = await collection.countDocuments();
+        if (count > 0) {
+            return { success: true, message: 'Database already seeded.' };
+        }
+        // remove the static id before inserting
+        const membersToInsert = staticMembers.map(({id, ...rest}) => ({...rest, _id: new ObjectId()}));
+        await collection.insertMany(membersToInsert as any[]);
+        return { success: true, message: 'Database seeded successfully with 5 members.' };
+    } catch(error) {
+        console.error('Error seeding members:', error);
+        return { success: false, message: 'Failed to seed database.' };
     }
 }
