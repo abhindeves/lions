@@ -17,7 +17,17 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { addMember } from '@/services/member-service';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
 
 
 import * as React from 'react';
@@ -64,7 +74,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import { getMembers, seedMembers } from '@/services/member-service';
+import { getMembers, seedMembers, deleteMember } from '@/services/member-service';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -79,10 +89,37 @@ const memberFormSchema = z.object({
 });
 type MemberFormValues = z.infer<typeof memberFormSchema>;
 
-function MemberRow({ member }: { member: Member }) {
+function MemberRow({ member, onMemberDeleted }: { member: Member, onMemberDeleted: () => void }) {
+  const { toast } = useToast();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('');
   }
+
+  const handleDelete = async () => {
+    try {
+      const result = await deleteMember(member.id);
+      if (result.success) {
+        toast({
+          title: 'Success',
+          description: result.message,
+        });
+        onMemberDeleted();
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete member',
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
   return (
     <TableRow>
       <TableCell className="hidden sm:table-cell">
@@ -122,9 +159,27 @@ function MemberRow({ member }: { member: Member }) {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuItem>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the member.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </TableCell>
     </TableRow>
   );
@@ -233,7 +288,7 @@ export default function MembersPage() {
             </TableHeader>
             <TableBody>
               {filteredMembers.length > 0 ? (
-                  filteredMembers.map(member => <MemberRow key={member.id} member={member} />)
+                  filteredMembers.map(member => <MemberRow key={member.id} member={member} onMemberDeleted={fetchMembers} />)
               ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="text-center">
