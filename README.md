@@ -6,8 +6,8 @@ LionsManager is a web application built with Next.js and MongoDB for managing a 
 
 - **Dashboard:** An overview of the club's activities, including total members, active members, upcoming events, and outstanding dues.
 - **Member Management:** Add, edit, and delete members. View a list of all members with their status, membership type, and start date.
-- **Event Management:** (Coming Soon)
-- **Subscription Management:** (Coming Soon)
+- **Event Management:** 
+- **Subscription Management:** 
 
 ## Getting Started
 
