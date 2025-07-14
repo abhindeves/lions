@@ -37,10 +37,13 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { events, subscriptions } from '@/lib/data';
+import type { Event } from '@/services/event-service';
 import { getMembers } from '@/services/member-service';
+import { getEvents } from '@/services/event-service';
+import { getSubscriptions } from '@/services/subscription-service';
 import { useEffect, useState } from 'react';
 import type { Member } from '@/lib/types';
+import type { Event } from '@/services/event-service';
 
 const chartConfig = {
   count: {
@@ -62,13 +65,19 @@ const chartConfig = {
 
 export default function Dashboard() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
 
   useEffect(() => {
-    const fetchMembers = async () => {
+    const fetchData = async () => {
       const dbMembers = await getMembers();
       setMembers(dbMembers);
+      const dbEvents = await getEvents();
+      setEvents(dbEvents);
+      const dbSubscriptions = await getSubscriptions();
+      setSubscriptions(dbSubscriptions);
     };
-    fetchMembers();
+    fetchData();
   }, []);
 
   const totalMembers = members.length;
@@ -77,7 +86,7 @@ export default function Dashboard() {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   const newMembersLastMonth = members.filter(m => new Date(m.membershipStartDate) >= oneMonthAgo).length;
-  const upcomingEventsCount = events.filter(e => e.status === 'Upcoming').length;
+  const upcomingEventsCount = events.filter(e => new Date(e.date) > new Date()).length;
   const outstandingDues = subscriptions
     .filter(s => s.status !== 'Paid')
     .reduce((acc, sub) => acc + sub.amount, 0);
@@ -118,7 +127,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{upcomingEventsCount}</div>
-            <p className="text-xs text-muted-foreground">+1 since last month</p>
+            <p className="text-xs text-muted-foreground">+{events.filter(e => new Date(e.date) > oneMonthAgo && e.status === 'Upcoming').length} since last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -158,7 +167,7 @@ export default function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {events.filter(e => e.status === 'Upcoming').slice(0, 5).map(event => (
+                {events.filter(e => new Date(e.date) > new Date()).slice(0, 5).map(event => (
                   <TableRow key={event.id}>
                     <TableCell>
                       <div className="font-medium">{event.name}</div>

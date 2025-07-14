@@ -61,7 +61,7 @@ export const members: Omit<Member, 'id'>[] = [
 export const events: Omit<Event, 'id'>[] = [
   {
     name: 'Annual Charity Gala',
-    date: '2024-10-26',
+    date: '2025-10-26',
     time: '18:00',
     venue: 'Grand Hotel Ballroom',
     description: 'Our biggest fundraising event of the year.',
@@ -70,7 +70,7 @@ export const events: Omit<Event, 'id'>[] = [
   },
   {
     name: 'Community Park Cleanup',
-    date: '2024-09-14',
+    date: '2025-09-14',
     time: '09:00',
     venue: 'Central Park',
     description: 'Join us to help clean and beautify our local park.',
@@ -79,7 +79,7 @@ export const events: Omit<Event, 'id'>[] = [
   },
   {
     name: 'Monthly Members Meeting',
-    date: '2024-08-05',
+    date: '2025-08-05',
     time: '19:00',
     venue: 'Clubhouse',
     description: 'Regular monthly meeting for all members.',
@@ -88,7 +88,7 @@ export const events: Omit<Event, 'id'>[] = [
   },
   {
     name: 'Summer Picnic',
-    date: '2024-07-20',
+    date: '2025-07-20',
     time: '12:00',
     venue: 'Lakeview Park',
     description: 'A fun social event for members and their families.',
@@ -97,7 +97,7 @@ export const events: Omit<Event, 'id'>[] = [
   },
   {
     name: 'Blood Donation Drive',
-    date: '2024-06-15',
+    date: '2025-06-15',
     time: '10:00',
     venue: 'Community Center',
     description: 'Partnering with the Red Cross to save lives.',
@@ -106,7 +106,7 @@ export const events: Omit<Event, 'id'>[] = [
   },
   {
     name: 'Holiday Toy Drive',
-    date: '2023-12-01',
+    date: '2024-12-01',
     time: '09:00',
     venue: 'Town Hall',
     description: 'Canceled due to unforeseen circumstances.',
