@@ -78,6 +78,9 @@ import { getMembers, seedMembers, deleteMember, updateMember, addMember } from '
 import { useToast } from '@/hooks/use-toast';
 
 
+import * as XLSX from 'xlsx';
+
+
 // Define the schema for the members (Adding Members)
 const memberFormSchema = z.object({
   fullName: z.string().min(2),
@@ -239,6 +242,13 @@ export default function MembersPage() {
     return matchesSearch;
   });
 
+  const handleExport = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredMembers);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
+    XLSX.writeFile(workbook, "members.xlsx");
+  }
+
   return (
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center">
@@ -251,7 +261,7 @@ export default function MembersPage() {
            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleSeed}>
             Seed Data
           </Button>
-          <Button size="sm" variant="outline" className="h-8 gap-1">
+          <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Export
