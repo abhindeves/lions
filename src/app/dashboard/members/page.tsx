@@ -86,7 +86,7 @@ const memberFormSchema = z.object({
   fullName: z.string().min(2),
   email: z.string().email(),
   status: z.enum(["Active", "Inactive"]),
-  membershipType: z.string().min(1),
+  membershipType: z.enum(["Regular", "Lifetime", "Honorary"]),
   membershipStartDate: z.string(),
   profilePhotoUrl: z.string().optional(),
 });
@@ -441,7 +441,14 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
                 <FormItem>
                   <FormLabel>Membership Type</FormLabel>
                   <FormControl>
-                    <Input placeholder="Regular" {...field} />
+                    <select
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="Regular">Regular</option>
+                      <option value="Lifetime">Lifetime</option>
+                      <option value="Honorary">Honorary</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -600,7 +607,14 @@ function EditMemberDialog({
                 <FormItem>
                   <FormLabel>Membership Type</FormLabel>
                   <FormControl>
-                    <Input placeholder="Regular" {...field} />
+                    <select
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="Regular">Regular</option>
+                      <option value="Lifetime">Lifetime</option>
+                      <option value="Honorary">Honorary</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
