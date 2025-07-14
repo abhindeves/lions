@@ -38,8 +38,8 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { events } from '@/lib/data';
-import { Event } from '@/lib/types';
+import { getEvents, seedEvents, Event } from '@/services/event-service';
+import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 
 function EventRow({ event }: { event: Event }) {
@@ -99,8 +99,36 @@ function EventRow({ event }: { event: Event }) {
 }
 
 export default function EventsPage() {
+  const [events, setEvents] = React.useState<Event[]>([]);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [activeTab, setActiveTab] = React.useState('all');
+  const { toast } = useToast();
+
+  const fetchEvents = React.useCallback(async () => {
+    const dbEvents = await getEvents();
+    setEvents(dbEvents);
+  }, []);
+
+  React.useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  const handleSeed = async () => {
+    const result = await seedEvents();
+    if(result.success) {
+      toast({
+        title: 'Success',
+        description: result.message,
+      });
+      fetchEvents(); // Refresh the list after seeding
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: result.message,
+      });
+    }
+  }
 
   const filteredEvents = events.filter(event => {
       const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -119,6 +147,9 @@ export default function EventsPage() {
           <TabsTrigger value="canceled">Canceled</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
+          <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleSeed}>
+            Seed Data
+          </Button>
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
