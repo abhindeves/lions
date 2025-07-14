@@ -115,8 +115,11 @@ export const events: Omit<Event, 'id'>[] = [
   }
 ];
 
-export const subscriptions: Omit<Subscription, 'id' | 'memberId' | 'memberName'>[] = [
+export const subscriptions: Subscription[] = [
   {
+    id: 'sub1',
+    memberId: 'member1',
+    memberName: 'John Doe',
     paymentDate: '2024-01-20',
     amount: 150,
     paymentMethod: 'Online',
@@ -124,6 +127,9 @@ export const subscriptions: Omit<Subscription, 'id' | 'memberId' | 'memberName'>
     notes: 'Annual Dues 2024',
   },
   {
+    id: 'sub2',
+    memberId: 'member2',
+    memberName: 'Jane Smith',
     paymentDate: '2024-01-10',
     amount: 0,
     paymentMethod: 'Online',
@@ -131,6 +137,9 @@ export const subscriptions: Omit<Subscription, 'id' | 'memberId' | 'memberName'>
     notes: 'Lifetime Member - No Dues',
   },
   {
+    id: 'sub3',
+    memberId: 'member3',
+    memberName: 'Peter Jones',
     paymentDate: '2024-01-15',
     amount: 150,
     paymentMethod: 'Online',
@@ -138,6 +147,9 @@ export const subscriptions: Omit<Subscription, 'id' | 'memberId' | 'memberName'>
     notes: 'Annual Dues 2024',
   },
   {
+    id: 'sub4',
+    memberId: 'member4',
+    memberName: 'Mary Johnson',
     paymentDate: '2024-02-01',
     amount: 100,
     paymentMethod: 'Cash',
@@ -145,6 +157,9 @@ export const subscriptions: Omit<Subscription, 'id' | 'memberId' | 'memberName'>
     notes: 'Partial payment for 2024 dues.',
   },
   {
+    id: 'sub5',
+    memberId: 'member5',
+    memberName: 'David Williams',
     paymentDate: '2023-01-18',
     amount: 150,
     paymentMethod: 'Bank Transfer',
