@@ -52,3 +52,44 @@ export async function seedEvents(): Promise<{ success: boolean, message: string 
         return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
     }
 }
+
+export async function deleteEvent(id: string): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!ObjectId.isValid(id)) {
+      return { success: false, message: 'Invalid event ID format.' };
+    }
+    const collection = await getCollection();
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return { success: false, message: 'Event not found.' };
+    }
+
+    return { success: true, message: 'Event deleted successfully.' };
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
+  }
+}
+
+export async function updateEvent(id: string, updates: Partial<Omit<Event, 'id'>>): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!ObjectId.isValid(id)) {
+      return { success: false, message: 'Invalid event ID format.' };
+    }
+    const collection = await getCollection();
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updates }
+    );
+
+    if (result.matchedCount === 0) {
+      return { success: false, message: 'Event not found.' };
+    }
+
+    return { success: true, message: 'Event updated successfully.' };
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
+  }
+}
