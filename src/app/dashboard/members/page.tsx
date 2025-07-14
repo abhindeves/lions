@@ -74,8 +74,11 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import { getMembers, seedMembers, deleteMember } from '@/services/member-service';
+import { getMembers, seedMembers, deleteMember, updateMember, addMember } from '@/services/member-service';
 import { useToast } from '@/hooks/use-toast';
+
+
+import * as XLSX from 'xlsx';
 
 
 // Define the schema for the members (Adding Members)
@@ -83,7 +86,7 @@ const memberFormSchema = z.object({
   fullName: z.string().min(2),
   email: z.string().email(),
   status: z.enum(["Active", "Inactive"]),
-  membershipType: z.string().min(1),
+  membershipType: z.enum(["Regular", "Lifetime", "Honorary"]),
   membershipStartDate: z.string(),
   profilePhotoUrl: z.string().optional(),
 });
@@ -92,6 +95,7 @@ type MemberFormValues = z.infer<typeof memberFormSchema>;
 function MemberRow({ member, onMemberDeleted }: { member: Member, onMemberDeleted: () => void }) {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('');
@@ -158,7 +162,7 @@ function MemberRow({ member, onMemberDeleted }: { member: Member, onMemberDelete
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>Edit</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
               Delete
             </DropdownMenuItem>
@@ -180,6 +184,15 @@ function MemberRow({ member, onMemberDeleted }: { member: Member, onMemberDelete
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        <EditMemberDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          member={member}
+          onMemberUpdated={() => {
+            onMemberDeleted(); // Re-fetch members
+            setIsEditDialogOpen(false);
+          }}
+        />
       </TableCell>
     </TableRow>
   );
@@ -229,6 +242,13 @@ export default function MembersPage() {
     return matchesSearch;
   });
 
+  const handleExport = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredMembers);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
+    XLSX.writeFile(workbook, "members.xlsx");
+  }
+
   return (
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center">
@@ -241,7 +261,7 @@ export default function MembersPage() {
            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleSeed}>
             Seed Data
           </Button>
-          <Button size="sm" variant="outline" className="h-8 gap-1">
+          <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Export
@@ -331,6 +351,9 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
         membershipType: data.membershipType,
         membershipStartDate: data.membershipStartDate,
         profilePhotoUrl: data.profilePhotoUrl || undefined,
+        phoneNumber: "", // Add default or collect from form
+        address: "",     // Add default or collect from form
+        outstandingDues: 0, // Add default or collect from form
       });
 
       if (result.success) {
@@ -421,7 +444,14 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
                 <FormItem>
                   <FormLabel>Membership Type</FormLabel>
                   <FormControl>
-                    <Input placeholder="Regular" {...field} />
+                    <select
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="Regular">Regular</option>
+                      <option value="Lifetime">Lifetime</option>
+                      <option value="Honorary">Honorary</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -462,6 +492,172 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
                 Cancel
               </Button>
               <Button type="submit">Add Member</Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditMemberDialog({
+  open,
+  onOpenChange,
+  member,
+  onMemberUpdated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  member: Member;
+  onMemberUpdated: () => void;
+}) {
+  const { toast } = useToast();
+
+  const form = useForm<MemberFormValues>({
+    resolver: zodResolver(memberFormSchema),
+    defaultValues: {
+      ...member,
+      membershipStartDate: new Date(member.membershipStartDate).toISOString().split('T')[0],
+    },
+  });
+
+  React.useEffect(() => {
+    form.reset({
+      ...member,
+      membershipStartDate: new Date(member.membershipStartDate).toISOString().split('T')[0],
+    });
+  }, [member, form]);
+
+  const onSubmit = async (data: MemberFormValues) => {
+    try {
+      const result = await updateMember(member.id, data);
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || "Member updated successfully",
+        });
+        onMemberUpdated();
+      } else {
+        throw new Error(result.message || "Failed to update member");
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update member",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Member</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="john@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="membershipType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Membership Type</FormLabel>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="Regular">Regular</option>
+                      <option value="Lifetime">Lifetime</option>
+                      <option value="Honorary">Honorary</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="membershipStartDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Start Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="profilePhotoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile Photo URL (optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/photo.jpg" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
             </div>
           </form>
         </Form>

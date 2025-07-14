@@ -37,13 +37,14 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { members, events, subscriptions } from '@/lib/data';
+import type { Event } from '@/services/event-service';
+import type { Subscription } from '@/lib/types';
+import { getMembers } from '@/services/member-service';
+import { getEvents } from '@/services/event-service';
+import { getSubscriptions } from '@/services/subscription-service';
+import { useEffect, useState } from 'react';
+import type { Member } from '@/lib/types';
 
-const chartData = [
-  { type: 'Regular', count: members.filter(m => m.membershipType === 'Regular').length, fill: 'var(--color-regular)' },
-  { type: 'Lifetime', count: members.filter(m => m.membershipType === 'Lifetime').length, fill: 'var(--color-lifetime)' },
-  { type: 'Honorary', count: members.filter(m => m.membershipType === 'Honorary').length, fill: 'var(--color-honorary)' },
-];
 
 const chartConfig = {
   count: {
@@ -64,12 +65,38 @@ const chartConfig = {
 };
 
 export default function Dashboard() {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const dbMembers = await getMembers();
+      setMembers(dbMembers);
+      const dbEvents = await getEvents();
+      setEvents(dbEvents);
+      const dbSubscriptions = await getSubscriptions();
+      setSubscriptions(dbSubscriptions);
+    };
+    fetchData();
+  }, []);
+
   const totalMembers = members.length;
   const activeMembers = members.filter(m => m.status === 'Active').length;
-  const upcomingEventsCount = events.filter(e => e.status === 'Upcoming').length;
+
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  const newMembersLastMonth = members.filter(m => new Date(m.membershipStartDate) >= oneMonthAgo).length;
+  const upcomingEventsCount = events.filter(e => new Date(e.date) > new Date()).length;
   const outstandingDues = subscriptions
     .filter(s => s.status !== 'Paid')
     .reduce((acc, sub) => acc + sub.amount, 0);
+
+  const chartData = [
+    { type: 'Regular', count: members.filter(m => m.membershipType === 'Regular').length, fill: 'var(--color-regular)' },
+    { type: 'Lifetime', count: members.filter(m => m.membershipType === 'Lifetime').length, fill: 'var(--color-lifetime)' },
+    { type: 'Honorary', count: members.filter(m => m.membershipType === 'Honorary').length, fill: 'var(--color-honorary)' },
+  ];
 
   return (
     <>
@@ -81,7 +108,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalMembers}</div>
-            <p className="text-xs text-muted-foreground">+2 since last month</p>
+            <p className="text-xs text-muted-foreground">+{newMembersLastMonth} since last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -101,7 +128,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{upcomingEventsCount}</div>
-            <p className="text-xs text-muted-foreground">+1 since last month</p>
+            <p className="text-xs text-muted-foreground">
+              +{events.filter(e => new Date(e.date) > oneMonthAgo && e.status === 'Upcoming').length} since last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -141,7 +169,7 @@ export default function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {events.filter(e => e.status === 'Upcoming').slice(0, 5).map(event => (
+                {events.filter(e => new Date(e.date) > new Date()).slice(0, 5).map(event => (
                   <TableRow key={event.id}>
                     <TableCell>
                       <div className="font-medium">{event.name}</div>
