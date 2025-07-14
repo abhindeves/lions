@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import type { Event } from '@/services/event-service';
+import type { Subscription } from '@/lib/types';
 import { getMembers } from '@/services/member-service';
 import { getEvents } from '@/services/event-service';
 import { getSubscriptions } from '@/services/subscription-service';

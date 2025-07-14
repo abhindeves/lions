@@ -351,6 +351,9 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
         membershipType: data.membershipType,
         membershipStartDate: data.membershipStartDate,
         profilePhotoUrl: data.profilePhotoUrl || undefined,
+        phoneNumber: "", // Add default or collect from form
+        address: "",     // Add default or collect from form
+        outstandingDues: 0, // Add default or collect from form
       });
 
       if (result.success) {

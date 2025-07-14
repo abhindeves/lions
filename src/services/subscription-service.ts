@@ -4,6 +4,7 @@ import clientPromise from '@/lib/mongodb';
 import { Collection, Db, ObjectId } from 'mongodb';
 import { subscriptions as staticSubscriptions } from '@/lib/data';
 import { Subscription } from '@/lib/types';
+import { getMembers } from '@/services/member-service';
 
 async function getCollection(): Promise<Collection<Omit<Subscription, 'id'>>> {
     const client = await clientPromise;
@@ -22,8 +23,6 @@ export async function getSubscriptions(): Promise<Subscription[]> {
     }
 }
 
-import { getMembers } from '@/services/member-service';
-
 export async function seedSubscriptions(): Promise<{ success: boolean, message: string }> {
     try {
         const collection = await getCollection();
@@ -38,7 +37,7 @@ export async function seedSubscriptions(): Promise<{ success: boolean, message: 
             return { success: false, message: 'No members found to link subscriptions to. Please seed members first.' };
         }
 
-        const subscriptionsToInsert = staticSubscriptions.map((sub, index) => ({
+        const subscriptionsToInsert = staticSubscriptions.map((sub: Omit<Subscription, 'id'>, index: number) => ({
             ...sub,
             memberId: members[index % members.length].id, 
             memberName: members[index % members.length].fullName,
@@ -62,6 +61,28 @@ export async function addSubscription(subscription: Omit<Subscription, 'id'>): P
     return { success: true, message: 'Subscription added successfully' };
   } catch (error) {
     console.error('Error adding subscription:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
+  }
+}
+
+export async function updateSubscription(id: string, updates: Partial<Omit<Subscription, 'id'>>): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!ObjectId.isValid(id)) {
+      return { success: false, message: 'Invalid subscription ID format.' };
+    }
+    const collection = await getCollection();
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updates }
+    );
+
+    if (result.matchedCount === 0) {
+      return { success: false, message: 'Subscription not found.' };
+    }
+
+    return { success: true, message: 'Subscription updated successfully.' };
+  } catch (error) {
+    console.error('Error updating subscription:', error);
     return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
   }
 }

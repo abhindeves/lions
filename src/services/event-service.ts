@@ -10,7 +10,7 @@ export interface Event {
   date: string;
   time: string;
   venue: string;
-  description: string;
+  description?: string;
   eventType: 'Community' | 'Fundraiser' | 'Meeting' | 'Social';
   status: 'Upcoming' | 'Completed' | 'Canceled';
   attachments?: string[];

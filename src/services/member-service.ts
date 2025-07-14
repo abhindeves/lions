@@ -9,10 +9,13 @@ export interface Member {
   id: string;
   fullName: string;
   email: string;
-  status: 'Active' | 'Inactive';
-  membershipType: string;
+  phoneNumber: string;
+  address: string;
   membershipStartDate: string;
+  membershipType: 'Regular' | 'Lifetime' | 'Honorary';
+  status: 'Active' | 'Inactive';
   profilePhotoUrl?: string;
+  outstandingDues: number;
 }
 
 async function getCollection(): Promise<Collection<Omit<Member, 'id'>>> {
@@ -104,5 +107,22 @@ export async function updateMember(id: string, updates: Partial<Omit<Member, 'id
   } catch (error) {
     console.error('Error updating member:', error);
     return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
+  }
+}
+
+export async function getMemberById(id: string): Promise<Member | null> {
+  try {
+    if (!ObjectId.isValid(id)) {
+      return null;
+    }
+    const collection = await getCollection();
+    const member = await collection.findOne({ _id: new ObjectId(id) });
+    if (member) {
+      return JSON.parse(JSON.stringify({ ...member, id: member._id.toString() }));
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching member by ID:', error);
+    return null;
   }
 }
