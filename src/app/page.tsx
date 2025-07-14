@@ -66,53 +66,41 @@ export default function LoginPage() {
 
 
   return (
-    <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <LionIcon className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold font-headline">LionsManager</h1>
-            </div>
-            <p className="text-balance text-muted-foreground">Enter your email below to login to your account</p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="mx-auto grid w-[350px] gap-6">
+        <div className="grid gap-2 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <LionIcon className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold font-headline">LionsManager</h1>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-headline">Login</CardTitle>
-              <CardDescription>
-                Use your credentials to access the dashboard.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form action={formAction} className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" name="email" type="email" placeholder="m@example.com" required defaultValue="admin@example.com" />
-                </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <Link href="#" className="ml-auto inline-block text-sm underline" prefetch={false}>
-                      Forgot your password?
-                    </Link>
-                  </div>
-                  <Input id="password" name="password" type="password" required defaultValue="password" />
-                </div>
-                <LoginButton />
-              </form>
-            </CardContent>
-          </Card>
+          <p className="text-balance text-muted-foreground">Enter your email below to login to your account</p>
         </div>
-      </div>
-      <div className="hidden bg-muted lg:block">
-        <img
-          src="https://placehold.co/1200x900.png"
-          alt="Image"
-          data-ai-hint="community event"
-          width="1920"
-          height="1080"
-          className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-headline">Login</CardTitle>
+            <CardDescription>
+              Use your credentials to access the dashboard.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={formAction} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" placeholder="m@example.com" required defaultValue="admin@example.com" />
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link href="#" className="ml-auto inline-block text-sm underline" prefetch={false}>
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input id="password" name="password" type="password" required defaultValue="password" />
+              </div>
+              <LoginButton />
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
