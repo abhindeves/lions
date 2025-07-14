@@ -43,7 +43,7 @@ import { getEvents } from '@/services/event-service';
 import { getSubscriptions } from '@/services/subscription-service';
 import { useEffect, useState } from 'react';
 import type { Member } from '@/lib/types';
-import type { Event } from '@/services/event-service';
+
 
 const chartConfig = {
   count: {
@@ -127,7 +127,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{upcomingEventsCount}</div>
-            <p className="text-xs text-muted-foreground">+{events.filter(e => new Date(e.date) > oneMonthAgo && e.status === 'Upcoming').length} since last month</p>
+            <p className="text-xs text-muted-foreground">
+              +{events.filter(e => new Date(e.date) > oneMonthAgo && e.status === 'Upcoming').length} since last month</p>
           </CardContent>
         </Card>
         <Card>

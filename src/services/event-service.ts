@@ -93,3 +93,14 @@ export async function updateEvent(id: string, updates: Partial<Omit<Event, 'id'>
     return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
   }
 }
+
+export async function addEvent(event: Omit<Event, 'id'>): Promise<{ success: boolean; message: string }> {
+  try {
+    const collection = await getCollection();
+    await collection.insertOne(event);
+    return { success: true, message: 'Event added successfully' };
+  } catch (error) {
+    console.error('Error adding event:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
+  }
+}
