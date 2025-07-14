@@ -84,3 +84,25 @@ export async function deleteMember(id: string): Promise<{ success: boolean; mess
     return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
   }
 }
+
+export async function updateMember(id: string, updates: Partial<Omit<Member, 'id'>>): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!ObjectId.isValid(id)) {
+      return { success: false, message: 'Invalid member ID format.' };
+    }
+    const collection = await getCollection();
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updates }
+    );
+
+    if (result.matchedCount === 0) {
+      return { success: false, message: 'Member not found.' };
+    }
+
+    return { success: true, message: 'Member updated successfully.' };
+  } catch (error) {
+    console.error('Error updating member:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'An unknown error occurred' };
+  }
+}
