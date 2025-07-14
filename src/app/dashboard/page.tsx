@@ -37,13 +37,10 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { members, events, subscriptions } from '@/lib/data';
-
-const chartData = [
-  { type: 'Regular', count: members.filter(m => m.membershipType === 'Regular').length, fill: 'var(--color-regular)' },
-  { type: 'Lifetime', count: members.filter(m => m.membershipType === 'Lifetime').length, fill: 'var(--color-lifetime)' },
-  { type: 'Honorary', count: members.filter(m => m.membershipType === 'Honorary').length, fill: 'var(--color-honorary)' },
-];
+import { events, subscriptions } from '@/lib/data';
+import { getMembers } from '@/services/member-service';
+import { useEffect, useState } from 'react';
+import type { Member } from '@/lib/types';
 
 const chartConfig = {
   count: {
@@ -64,12 +61,32 @@ const chartConfig = {
 };
 
 export default function Dashboard() {
+  const [members, setMembers] = useState<Member[]>([]);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      const dbMembers = await getMembers();
+      setMembers(dbMembers);
+    };
+    fetchMembers();
+  }, []);
+
   const totalMembers = members.length;
   const activeMembers = members.filter(m => m.status === 'Active').length;
+
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  const newMembersLastMonth = members.filter(m => new Date(m.membershipStartDate) >= oneMonthAgo).length;
   const upcomingEventsCount = events.filter(e => e.status === 'Upcoming').length;
   const outstandingDues = subscriptions
     .filter(s => s.status !== 'Paid')
     .reduce((acc, sub) => acc + sub.amount, 0);
+
+  const chartData = [
+    { type: 'Regular', count: members.filter(m => m.membershipType === 'Regular').length, fill: 'var(--color-regular)' },
+    { type: 'Lifetime', count: members.filter(m => m.membershipType === 'Lifetime').length, fill: 'var(--color-lifetime)' },
+    { type: 'Honorary', count: members.filter(m => m.membershipType === 'Honorary').length, fill: 'var(--color-honorary)' },
+  ];
 
   return (
     <>
@@ -81,7 +98,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalMembers}</div>
-            <p className="text-xs text-muted-foreground">+2 since last month</p>
+            <p className="text-xs text-muted-foreground">+{newMembersLastMonth} since last month</p>
           </CardContent>
         </Card>
         <Card>
