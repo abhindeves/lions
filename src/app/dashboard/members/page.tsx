@@ -69,6 +69,7 @@ import {
 } from '@/components/ui/tabs';
 import type { Member } from '@/lib/types';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Avatar,
   AvatarFallback,
@@ -126,7 +127,7 @@ function MemberRow({ member, onMemberDeleted }: { member: Member, onMemberDelete
 
   return (
     <TableRow>
-      <TableCell className="hidden sm:table-cell">
+      <TableCell>
         <Dialog>
           <DialogTrigger asChild>
             <Avatar className="h-8 w-8 cursor-pointer">
@@ -149,10 +150,10 @@ function MemberRow({ member, onMemberDeleted }: { member: Member, onMemberDelete
           {member.status}
         </Badge>
       </TableCell>
-      <TableCell className="hidden md:table-cell">
+      <TableCell>
         {member.membershipType}
       </TableCell>
-      <TableCell className="hidden md:table-cell">
+      <TableCell>
         {new Date(member.membershipStartDate).toLocaleDateString()}
       </TableCell>
       <TableCell>
@@ -294,37 +295,39 @@ export default function MembersPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden sm:table-cell">
-                  <span className="sr-only">Image</span>
-                </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Type
-                </TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Start Date
-                </TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMembers.length > 0 ? (
-                  filteredMembers.map(member => <MemberRow key={member.id} member={member} onMemberDeleted={fetchMembers} />)
-              ) : (
+          <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                        No members found.
-                    </TableCell>
+                  <TableHead>
+                    <span className="sr-only">Image</span>
+                  </TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>
+                    Type
+                  </TableHead>
+                  <TableHead>
+                    Start Date
+                  </TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.length > 0 ? (
+                    filteredMembers.map(member => <MemberRow key={member.id} member={member} onMemberDeleted={fetchMembers} />)
+                ) : (
+                  <TableRow>
+                      <TableCell colSpan={6} className="text-center">
+                          No members found.
+                      </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </CardContent>
       </Card>
     </Tabs>
