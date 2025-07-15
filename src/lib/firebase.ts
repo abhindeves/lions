@@ -10,7 +10,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
+// Initialize
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const storage = getStorage(app);
 
