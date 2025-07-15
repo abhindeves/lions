@@ -402,7 +402,7 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Member</DialogTitle>
         </DialogHeader>
@@ -498,7 +498,18 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
                       type="file"
                       accept="image/*"
                       onChange={(event) => {
-                        onChange(event.target.files && event.target.files[0]);
+                        const file = event.target.files && event.target.files[0];
+                        if (file && file.size > 1024 * 1024) { // 1MB in bytes
+                          toast({
+                            variant: "destructive",
+                            title: "File too large",
+                            description: "Please upload an image less than 1MB.",
+                          });
+                          event.target.value = ''; // Clear the input
+                          onChange(null); // Clear the form field value
+                        } else {
+                          onChange(file);
+                        }
                       }}
                     />
                   </FormControl>
@@ -584,7 +595,7 @@ function EditMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Member</DialogTitle>
         </DialogHeader>
@@ -680,7 +691,18 @@ function EditMemberDialog({
                       type="file"
                       accept="image/*"
                       onChange={(event) => {
-                        onChange(event.target.files && event.target.files[0]);
+                        const file = event.target.files && event.target.files[0];
+                        if (file && file.size > 1024 * 1024) { // 1MB in bytes
+                          toast({
+                            variant: "destructive",
+                            title: "File too large",
+                            description: "Please upload an image less than 1MB.",
+                          });
+                          event.target.value = ''; // Clear the input
+                          onChange(null); // Clear the form field value
+                        } else {
+                          onChange(file);
+                        }
                       }}
                     />
                   </FormControl>

@@ -4,11 +4,14 @@ import * as React from 'react';
 import {
   MoreHorizontal,
   PlusCircle,
-  File,
+  File as FileIcon, // Renamed to avoid conflict with global File type
+  Calendar,
+  MapPin,
 } from 'lucide-react';
 import {
   Badge,
 } from '@/components/ui/badge';
+import { uploadFile } from '@/lib/firebase'; // Import uploadFile
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -38,6 +41,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
 import { getEvents, seedEvents, deleteEvent, updateEvent, addEvent, Event } from '@/services/event-service';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -80,6 +84,7 @@ const eventFormSchema = z.object({
   eventType: z.enum(['Community', 'Fundraiser', 'Meeting', 'Social']),
   status: z.enum(['Upcoming', 'Completed', 'Canceled']),
   attachments: z.array(z.string()).optional(),
+  eventImageFile: z.any().optional(), // Added for file upload handling
 });
 type EventFormValues = z.infer<typeof eventFormSchema>;
 
@@ -125,67 +130,61 @@ function EventRow({ event, onEventDeleted, onEventUpdated }: { event: Event, onE
   };
 
   return (
-    <TableRow>
-      <TableCell className="font-medium">
-        {event.name}
-      </TableCell>
-      <TableCell>
+    <Card className="w-full max-w-md mx-auto">
+      {event.imageUrl && (
+        <div className="relative w-full h-48 bg-gray-200 rounded-t-lg overflow-hidden">
+          <img src={event.imageUrl} alt={event.name} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <CardHeader className="pb-3">
+        <CardTitle>{event.name}</CardTitle>
+        <CardDescription className="flex items-center gap-1 text-sm">
+          <Calendar className="h-4 w-4" />
+          {new Date(event.date).toLocaleDateString()} at {event.time}
+        </CardDescription>
+        <CardDescription className="flex items-center gap-1 text-sm">
+          <MapPin className="h-4 w-4" />
+          {event.venue}
+        </CardDescription>
+        {event.description && (
+          <CardDescription className="text-sm mt-2">
+            {event.description}
+          </CardDescription>
+        )}
+      </CardHeader>
+      <CardContent className="flex justify-between items-center">
         <Badge variant={'outline'} className={getStatusBadge(event.status)}>
           {event.status}
         </Badge>
-      </TableCell>
-      <TableCell className="hidden md:table-cell">
-        {event.eventType}
-      </TableCell>
-      <TableCell className="hidden md:table-cell">
-        {new Date(event.date).toLocaleDateString()} at {event.time}
-      </TableCell>
-      <TableCell className="hidden sm:table-cell">
-        {event.venue}
-      </TableCell>
-      <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              aria-haspopup="true"
-              size="icon"
-              variant="ghost"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the event.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <EditEventDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          event={event}
-          onEventUpdated={() => {
-            onEventUpdated();
-            setIsEditDialogOpen(false);
-          }}
-        />
-      </TableCell>
-    </TableRow>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setIsEditDialogOpen(true)}>Edit</Button>
+          <Button size="sm" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>Delete</Button>
+        </div>
+      </CardContent>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the event.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <EditEventDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        event={event}
+        onEventUpdated={() => {
+          onEventUpdated();
+          setIsEditDialogOpen(false);
+        }}
+      />
+    </Card>
   );
 }
 
@@ -249,7 +248,7 @@ export default function EventsPage() {
             Seed Data
           </Button>
           <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
-            <File className="h-3.5 w-3.5" />
+            <FileIcon className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Export
             </span>
@@ -274,23 +273,17 @@ export default function EventsPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Type</TableHead>
-                <TableHead className="hidden md:table-cell">Date & Time</TableHead>
-                <TableHead className="hidden sm:table-cell">Venue</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEvents.map(event => <EventRow key={event.id} event={event} onEventDeleted={fetchEvents} onEventUpdated={fetchEvents} />)}
-            </TableBody>
-          </Table>
+          <ScrollArea className="h-[calc(100vh-250px)] w-full rounded-md border p-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map(event => (
+                  <EventRow key={event.id} event={event} onEventDeleted={fetchEvents} onEventUpdated={fetchEvents} />
+                ))
+              ) : (
+                <p className="col-span-full text-center text-muted-foreground">No events found.</p>
+              )}
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
     </Tabs>
@@ -317,7 +310,16 @@ function AddEventDialog({ onEventAdded }: { onEventAdded: () => void }) {
 
   const onSubmit = async (data: EventFormValues) => {
     try {
-      const result = await addEvent(data);
+      let imageUrl: string | undefined = undefined;
+      if (data.eventImageFile) {
+        const filePath = `event_images/${Date.now()}_${data.eventImageFile.name}`;
+        imageUrl = await uploadFile(data.eventImageFile, filePath);
+      }
+
+      const result = await addEvent({
+        ...data,
+        imageUrl: imageUrl, // Use the uploaded URL
+      });
 
       if (result.success) {
         toast({
@@ -461,6 +463,37 @@ function AddEventDialog({ onEventAdded }: { onEventAdded: () => void }) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="eventImageFile"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
+                <FormItem>
+                  <FormLabel>Event Image (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...fieldProps}
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        const file = event.target.files && event.target.files[0];
+                        if (file && file.size > 1024 * 1024) { // 1MB in bytes
+                          toast({
+                            variant: "destructive",
+                            title: "File too large",
+                            description: "Please upload an image less than 1MB.",
+                          });
+                          event.target.value = ''; // Clear the input
+                          onChange(null); // Clear the form field value
+                        } else {
+                          onChange(file);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
@@ -508,7 +541,16 @@ function EditEventDialog({
 
   const onSubmit = async (data: EventFormValues) => {
     try {
-      const result = await updateEvent(event.id, data);
+      let imageUrl: string | undefined = event.imageUrl; // Keep existing URL if no new file
+      if (data.eventImageFile) {
+        const filePath = `event_images/${Date.now()}_${data.eventImageFile.name}`;
+        imageUrl = await uploadFile(data.eventImageFile, filePath);
+      }
+
+      const result = await updateEvent(event.id, {
+        ...data,
+        imageUrl: imageUrl, // Use the uploaded URL or existing one
+      });
 
       if (result.success) {
         toast({
@@ -637,6 +679,37 @@ function EditEventDialog({
                       <option value="Completed">Completed</option>
                       <option value="Canceled">Canceled</option>
                     </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="eventImageFile"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
+                <FormItem>
+                  <FormLabel>Event Image (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...fieldProps}
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        const file = event.target.files && event.target.files[0];
+                        if (file && file.size > 1024 * 1024) { // 1MB in bytes
+                          toast({
+                            variant: "destructive",
+                            title: "File too large",
+                            description: "Please upload an image less than 1MB.",
+                          });
+                          event.target.value = ''; // Clear the input
+                          onChange(null); // Clear the form field value
+                        } else {
+                          onChange(file);
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -25,6 +25,7 @@ export type Event = {
   eventType: 'Community' | 'Fundraiser' | 'Meeting' | 'Social';
   status: 'Upcoming' | 'Completed' | 'Canceled';
   attachments?: string[];
+  imageUrl?: string; // Added for event image
 };
 
 export type Subscription = {
