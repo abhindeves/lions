@@ -34,7 +34,7 @@ import * as React from 'react';
 import {
   MoreHorizontal,
   PlusCircle,
-  File,
+  File as FileIcon, // Renamed to avoid conflict with global File type
 } from 'lucide-react';
 import {
   Badge,
@@ -76,7 +76,7 @@ import {
 } from '@/components/ui/avatar';
 import { getMembers, seedMembers, deleteMember, updateMember, addMember } from '@/services/member-service';
 import { useToast } from '@/hooks/use-toast';
-
+import { uploadFile } from '@/lib/firebase'; // Import uploadFile
 
 import * as XLSX from 'xlsx';
 
@@ -88,7 +88,7 @@ const memberFormSchema = z.object({
   status: z.enum(["Active", "Inactive"]),
   membershipType: z.enum(["Regular", "Lifetime", "Honorary"]),
   membershipStartDate: z.string(),
-  profilePhotoUrl: z.string().optional(),
+  profilePhotoFile: z.any().optional(), // Changed to handle file upload, using z.any() for File type compatibility
 });
 type MemberFormValues = z.infer<typeof memberFormSchema>;
 
@@ -127,10 +127,17 @@ function MemberRow({ member, onMemberDeleted }: { member: Member, onMemberDelete
   return (
     <TableRow>
       <TableCell className="hidden sm:table-cell">
-         <Avatar className="h-8 w-8">
-            <AvatarImage src={member.profilePhotoUrl} alt={member.fullName} />
-            <AvatarFallback>{getInitials(member.fullName)}</AvatarFallback>
-          </Avatar>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Avatar className="h-8 w-8 cursor-pointer">
+              <AvatarImage src={member.profilePhotoUrl} alt={member.fullName} />
+              <AvatarFallback>{getInitials(member.fullName)}</AvatarFallback>
+            </Avatar>
+          </DialogTrigger>
+          <DialogContent className="max-w-fit">
+            <img src={member.profilePhotoUrl} alt={member.fullName} className="max-w-full max-h-[80vh] object-contain" />
+          </DialogContent>
+        </Dialog>
       </TableCell>
       <TableCell className="font-medium">
         {member.fullName}
@@ -262,7 +269,7 @@ export default function MembersPage() {
             Seed Data
           </Button>
           <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
-            <File className="h-3.5 w-3.5" />
+            <FileIcon className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Export
             </span>
@@ -343,6 +350,12 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
 
   const onSubmit = async (data: MemberFormValues) => {
     try {
+      let profilePhotoUrl: string | undefined = undefined;
+      if (data.profilePhotoFile) {
+        const filePath = `profile_photos/${Date.now()}_${data.profilePhotoFile.name}`;
+        profilePhotoUrl = await uploadFile(data.profilePhotoFile, filePath);
+      }
+
       // Call the addMember API function
       const result = await addMember({
         fullName: data.fullName,
@@ -350,7 +363,7 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
         status: data.status,
         membershipType: data.membershipType,
         membershipStartDate: data.membershipStartDate,
-        profilePhotoUrl: data.profilePhotoUrl || undefined,
+        profilePhotoUrl: profilePhotoUrl, // Use the uploaded URL
         phoneNumber: "", // Add default or collect from form
         address: "",     // Add default or collect from form
         outstandingDues: 0, // Add default or collect from form
@@ -472,12 +485,19 @@ function AddMemberDialog({ onMemberAdded }: { onMemberAdded: () => void }) {
             />
             <FormField
               control={form.control}
-              name="profilePhotoUrl"
-              render={({ field }) => (
+              name="profilePhotoFile"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel>Profile Photo URL (optional)</FormLabel>
+                  <FormLabel>Profile Photo (optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/photo.jpg" {...field} />
+                    <Input
+                      {...fieldProps}
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        onChange(event.target.files && event.target.files[0]);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -530,7 +550,16 @@ function EditMemberDialog({
 
   const onSubmit = async (data: MemberFormValues) => {
     try {
-      const result = await updateMember(member.id, data);
+      let profilePhotoUrl: string | undefined = member.profilePhotoUrl; // Keep existing URL if no new file
+      if (data.profilePhotoFile) {
+        const filePath = `profile_photos/${Date.now()}_${data.profilePhotoFile.name}`;
+        profilePhotoUrl = await uploadFile(data.profilePhotoFile, filePath);
+      }
+
+      const result = await updateMember(member.id, {
+        ...data,
+        profilePhotoUrl: profilePhotoUrl, // Use the uploaded URL or existing one
+      });
 
       if (result.success) {
         toast({
@@ -638,12 +667,19 @@ function EditMemberDialog({
             />
             <FormField
               control={form.control}
-              name="profilePhotoUrl"
-              render={({ field }) => (
+              name="profilePhotoFile"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel>Profile Photo URL (optional)</FormLabel>
+                  <FormLabel>Profile Photo (optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/photo.jpg" {...field} />
+                    <Input
+                      {...fieldProps}
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        onChange(event.target.files && event.target.files[0]);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

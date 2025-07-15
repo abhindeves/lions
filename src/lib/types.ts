@@ -11,6 +11,7 @@ export type Member = {
   membershipType: 'Regular' | 'Lifetime' | 'Honorary';
   status: 'Active' | 'Inactive';
   profilePhotoUrl?: string;
+  profilePhotoFile?: File; // Added for file upload handling in frontend
   outstandingDues: number;
 };
 
