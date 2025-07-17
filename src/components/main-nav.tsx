@@ -10,6 +10,7 @@ import {
   DollarSign,
   Settings,
 } from 'lucide-react';
+import { Dispatch, SetStateAction } from 'react';
 
 
 const RupeeIcon = () => <span>₹</span>;
@@ -21,7 +22,11 @@ const navigation = [
   { name: 'Subscriptions', href: '/dashboard/subscriptions', icon: RupeeIcon},
 ];
 
-export function MainNav() {
+interface MainNavProps {
+  setOpen?: Dispatch<SetStateAction<boolean>>;
+}
+
+export function MainNav({ setOpen }: MainNavProps) {
   const pathname = usePathname();
 
   return (
@@ -36,6 +41,7 @@ export function MainNav() {
               'bg-muted text-primary': pathname === item.href,
             }
           )}
+          onClick={() => setOpen && setOpen(false)}
         >
           {item.icon && <item.icon className="h-4 w-4" />}
           {item.name}
