@@ -127,19 +127,19 @@ function SubscriptionRow({ annualSub, onSubscriptionUpdated }: { annualSub: Annu
         <TableCell>
           {getStatusBadge(annualSub.status, annualSub.remainingBalance)}
         </TableCell>
-        <TableCell className="hidden md:table-cell">
+        <TableCell>
           ₹{annualSub.annualAmount.toFixed(2)}
         </TableCell>
-        <TableCell className="hidden md:table-cell">
+        <TableCell>
           ₹{annualSub.remainingBalance.toFixed(2)}
         </TableCell>
-        <TableCell className="hidden sm:table-cell">
+        <TableCell>
           {new Date(annualSub.createdAt).toLocaleDateString()}
         </TableCell>
-        <TableCell className="hidden md:table-cell">
+        <TableCell>
           {annualSub.subscriptionYear}
         </TableCell>
-        <TableCell className="hidden lg:table-cell">
+        <TableCell>
           {new Date(annualSub.updatedAt).toLocaleDateString()}
         </TableCell>
         <TableCell>
@@ -988,30 +988,32 @@ export default function SubscriptionsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Annual Amount</TableHead>
-                <TableHead className="hidden md:table-cell">Remaining Balance</TableHead>
-                <TableHead className="hidden sm:table-cell">Created At</TableHead>
-                <TableHead className="hidden md:table-cell">Year</TableHead>
-                <TableHead className="hidden lg:table-cell">Last Updated</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-                <TableHead>History</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAnnualSubscriptions.map(annualSub => (
-                <Collapsible key={annualSub.id} asChild>
-                  <SubscriptionRow annualSub={annualSub} onSubscriptionUpdated={fetchAnnualSubscriptions} />
-                </Collapsible>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Annual Amount</TableHead>
+                  <TableHead>Remaining Balance</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Last Updated</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                  <TableHead>History</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAnnualSubscriptions.map(annualSub => (
+                  <Collapsible key={annualSub.id} asChild>
+                    <SubscriptionRow annualSub={annualSub} onSubscriptionUpdated={fetchAnnualSubscriptions} />
+                  </Collapsible>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </Tabs>
