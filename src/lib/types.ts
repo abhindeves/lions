@@ -28,13 +28,26 @@ export type Event = {
   imageUrl?: string; // Added for event image
 };
 
-export type Subscription = {
+export type AnnualSubscription = {
+  _id?: ObjectId;
   id: string;
   memberId: string;
   memberName: string;
+  annualAmount: number;
+  createdAt: string;
+  updatedAt: string;
+  remainingBalance: number; // Calculated field
+  status: 'Paid' | 'Unpaid' | 'Partial'; // Calculated field
+  subscriptionYear: number; // New field for the subscription year
+  carriedForwardDebt: number; // New field to store debt carried from previous years
+};
+
+export type Payment = {
+  _id?: ObjectId;
+  id: string;
+  subscriptionId: string;
+  amountPaid: number;
   paymentDate: string;
-  amount: number;
-  paymentMethod: 'Cash' | 'Bank Transfer' | 'Online';
-  status: 'Paid' | 'Unpaid' | 'Partial';
+  method: 'Cash' | 'Online' | 'Bank Transfer' | 'Overpayment Transfer' | 'Debt Transfer';
   notes?: string;
 };

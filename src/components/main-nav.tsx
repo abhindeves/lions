@@ -11,11 +11,14 @@ import {
   Settings,
 } from 'lucide-react';
 
+
+const RupeeIcon = () => <span>₹</span>;
+
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
-  { name: 'Subscriptions', href: '/dashboard/subscriptions', icon: DollarSign },
+  { name: 'Subscriptions', href: '/dashboard/subscriptions', icon: RupeeIcon},
 ];
 
 export function MainNav() {
@@ -34,7 +37,7 @@ export function MainNav() {
             }
           )}
         >
-          <item.icon className="h-4 w-4" />
+          {item.icon && <item.icon className="h-4 w-4" />}
           {item.name}
         </Link>
       ))}

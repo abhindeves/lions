@@ -130,9 +130,9 @@ function EventRow({ event, onEventDeleted, onEventUpdated }: { event: Event, onE
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full">
       {event.imageUrl && (
-        <div className="relative w-full h-48 bg-gray-200 rounded-t-lg overflow-hidden">
+        <div className="relative w-full h-[300px] bg-gray-200 rounded-t-lg overflow-hidden">
           <img src={event.imageUrl} alt={event.name} className="w-full h-full object-cover" />
         </div>
       )}
@@ -274,7 +274,7 @@ export default function EventsPage() {
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[calc(100vh-250px)] w-full rounded-md border p-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredEvents.length > 0 ? (
                 filteredEvents.map(event => (
                   <EventRow key={event.id} event={event} onEventDeleted={fetchEvents} onEventUpdated={fetchEvents} />
@@ -351,7 +351,7 @@ function AddEventDialog({ onEventAdded }: { onEventAdded: () => void }) {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Event</DialogTitle>
         </DialogHeader>
@@ -572,7 +572,7 @@ function EditEventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
         </DialogHeader>

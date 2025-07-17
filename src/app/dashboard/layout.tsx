@@ -69,21 +69,6 @@ export default function DashboardLayout({
           <div className="flex-1">
             <MainNav />
           </div>
-          <div className="mt-auto p-4">
-            <Card>
-              <CardHeader className="p-2 pt-0 md:p-4">
-                <CardTitle className='font-headline text-lg'>Help & Support</CardTitle>
-                <CardDescription>
-                  Contact support for any issues or questions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
-                  Contact Support
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
       <div className="flex flex-col">
@@ -101,21 +86,6 @@ export default function DashboardLayout({
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
                 <MainNav />
-              <div className="mt-auto">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className='font-headline'>Help & Support</CardTitle>
-                    <CardDescription>
-                      Contact support for any issues or questions.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button size="sm" className="w-full">
-                      Contact Support
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">

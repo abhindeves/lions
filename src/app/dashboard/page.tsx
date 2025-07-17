@@ -38,10 +38,10 @@ import {
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import type { Event } from '@/services/event-service';
-import type { Subscription } from '@/lib/types';
+import type { AnnualSubscription } from '@/lib/types';
 import { getMembers } from '@/services/member-service';
 import { getEvents } from '@/services/event-service';
-import { getSubscriptions } from '@/services/subscription-service';
+import { getAnnualSubscriptions } from '@/services/subscription-service';
 import { useEffect, useState } from 'react';
 import type { Member } from '@/lib/types';
 
@@ -67,7 +67,7 @@ const chartConfig = {
 export default function Dashboard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+const [subscriptions, setSubscriptions] = useState<AnnualSubscription[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +75,7 @@ export default function Dashboard() {
       setMembers(dbMembers);
       const dbEvents = await getEvents();
       setEvents(dbEvents);
-      const dbSubscriptions = await getSubscriptions();
+const dbSubscriptions = await getAnnualSubscriptions();
       setSubscriptions(dbSubscriptions);
     };
     fetchData();
@@ -90,7 +90,7 @@ export default function Dashboard() {
   const upcomingEventsCount = events.filter(e => new Date(e.date) > new Date()).length;
   const outstandingDues = subscriptions
     .filter(s => s.status !== 'Paid')
-    .reduce((acc, sub) => acc + sub.amount, 0);
+.reduce((acc, sub) => acc + sub.remainingBalance, 0);
 
   const chartData = [
     { type: 'Regular', count: members.filter(m => m.membershipType === 'Regular').length, fill: 'var(--color-regular)' },
@@ -138,7 +138,7 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${outstandingDues.toLocaleString()}</div>
+            <div className="text-2xl font-bold">₹{outstandingDues.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Total amount unpaid or partial</p>
           </CardContent>
         </Card>
